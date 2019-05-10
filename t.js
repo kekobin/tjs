@@ -129,7 +129,7 @@
     }
 
     /**
-     * 标签节点模型(<% <ul><li> %>)
+     * 标签节点模型(<ul><li>)
      * @param {*} value 值
      */
     function createTextShape(value) {
