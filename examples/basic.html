@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>基本用例</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+
+<body>
+
+</body>
+<script src="../t.js"></script>
+<script id="template" type="text/html">
+    <div>
+        <table>
+            <%var test = '输出自定义变量'%>
+            <caption>for循环输出两次</caption>
+            <% [1].forEach(function(){ %>
+            <tr>
+                <td>&lt;%=html%&gt;默认(html转义)</td>
+                <td><%=html%></td>
+            </tr>
+            <tr>
+                <td>&lt;%:=html&gt;不转义</td>
+                <td><%:=html%></td>
+            </tr>
+            <tr>
+                <td>&lt;%=url&gt;URI转义</td>
+                <td><%=url%></td>
+            </tr>
+            <tr>
+                <td>var</td>
+                <td><%=test%></td>
+            </tr>
+            <tr>
+                <td>&lt;%=test + 1&gt;表达式</td>
+                <td><%=test + 1%></td>
+            </tr>
+            <%if (true) %>
+            <tr>
+                <td>if</td>
+                <td>if 语句</td>
+            </tr>
+            <%endif%>
+            <tr>
+                <td>分割线</td>
+                <td>------------------------------</td>
+            </tr>
+            <% }) %>
+        </table>
+    </div>
+</script>
+
+<script>
+    console.time('渲染用时')
+    const el = document.querySelector('#template')
+    tjs(el.innerHTML)
+    document.write(tjs.render({
+        url: 'http://yanhaijing.com?name=颜海镜',
+        html: "<div id='test'>template.js </div>"
+    }))
+    console.timeEnd('渲染用时')
+</script>
+
+</html>

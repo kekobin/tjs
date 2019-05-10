@@ -2,8 +2,8 @@
     global.tjs = factory()
 })(this, function () {
     const options = {
-        expTag: /(if|forEach|endif)([\s\S]+)/,
-        sTag: /(<%=|<%)/,
+        expTag: /(if|forEach|endif)/,
+        sTag: /(<%:=|<%=|<%)/,
         varTag: /(var)[\w\W]+(=)[\w\W]+/
     }
     // 抽象语法树
@@ -46,6 +46,10 @@
                 root.push(createTextShape(str.slice(0, index)))
             }
             switch (matches[0]) {
+                case '<%:=':
+                    root.push(createLabelStrShape(str.slice(index + 4, eTag)))
+                    tjs.parse(str.slice(eTag + 2), root)
+                    break
                 case '<%=':
                     root.push(createLabelShape(str.slice(index + 3, eTag)))
                     tjs.parse(str.slice(eTag + 2), root)
@@ -55,16 +59,13 @@
                     value = statement.match(expTag)
                     if (value) {
                         // 如果是if|forEach表达式
-                        const tag = value[1] === 'endif' ? createTextShape('}') : createTagShape(value[1], statement, root)
+                        const isEndif = value[1].trim() === 'endif'
+                        const tag = isEndif ? createTextShape('}') : createTagShape(value[1], statement, root)
                         root.push(tag)
-                        if (value[1] === 'endif') {
+                        if (isEndif) {
                             tjs.parse(str.slice(eTag + 2), parentNode.pop())
                         } else {
-                            if (value[1] === 'if') {
-                                parentNode.push(root)
-                            } else {
-                                console.log('123')
-                            };
+                            if (value[1] === 'if') parentNode.push(root);
                             tjs.parse(str.slice(eTag + 2), value[1] === 'if' ? tag.children : root)
                         }
                     } else {
@@ -115,6 +116,9 @@
                     case 4:
                         domStr += value + ';'
                         break;
+                    case 5:
+                        domStr += "_str += " + value + ".replace(/</g, '&lt;');\n"
+                        break;
                 }
             })
 
@@ -139,6 +143,7 @@
      * 表达式节点模型(<% if (statement) %>)
      * @param {if | forEach} tag 
      * @param {String} expression 
+     * @return {Object}
      */
     function createTagShape(tag, expression) {
         return {
@@ -152,6 +157,7 @@
     /**
      * 赋值节点模型(<%= name %>)
      * @param {*} value 值
+     * @return {Object}
      */
     function createLabelShape(value) {
         return {
@@ -163,10 +169,23 @@
     /**
      * 声明变量节点模型(<% var test = 'demo' %>)
      * @param {*} value 值
+     * @return {Object}
      */
     function createVarShape(value) {
         return {
             type: 4,
+            value: value.replace(/\n/g, " ").trim()
+        }
+    }
+
+    /**
+     * 标签转string模型(<%:= text %>)text = <p>123</p>
+     * @param {*} value 值
+     * @return {Object}
+     */
+    function createLabelStrShape(value) {
+        return {
+            type: 5,
             value: value.replace(/\n/g, " ").trim()
         }
     }
