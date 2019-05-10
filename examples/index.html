@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+</body>
+
+<script id="template" type="text/html">
+    <!-- 测试渲染10000条数据用时 -->
+<div>
+    <% if (names.length)  %>
+    <ul>
+        <% names.forEach(function(name){ %>
+        <li><%= name %></li>
+        <% }) %>
+    </ul>
+    <% endif %>
+</div>
+</script>
+<script src="../t.js"></script>
+<script>
+    console.time('渲染10000条数据用时')
+    const el = document.querySelector('#template')
+    tjs(el.innerHTML)
+    document.write(tjs.render({
+        names: (new Array(10000)).fill('123')
+    }))
+    console.timeEnd('渲染10000条数据用时')
+</script>
+
+</html>
