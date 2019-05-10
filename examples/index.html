@@ -16,9 +16,10 @@
     <!-- 测试渲染10000条数据用时 -->
 <div>
     <% if (names.length)  %>
+    <% var a = 'Test-' %>
     <ul>
         <% names.forEach(function(name){ %>
-        <li><%= name %></li>
+        <li><%= a + name %></li>
         <% }) %>
     </ul>
     <% endif %>
@@ -30,7 +31,7 @@
     const el = document.querySelector('#template')
     tjs(el.innerHTML)
     document.write(tjs.render({
-        names: (new Array(10000)).fill('123')
+        names: (new Array(10000)).fill('wjun94')
     }))
     console.timeEnd('渲染10000条数据用时')
 </script>

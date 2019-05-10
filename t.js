@@ -2,8 +2,9 @@
     global.tjs = factory()
 })(this, function () {
     const options = {
-        statement: /(if|forEach|endif)([\s\S]+)/,
-        stag: /(<%=|<%)/,
+        expTag: /(if|forEach|endif)([\s\S]+)/,
+        sTag: /(<%=|<%)/,
+        varTag: /(var)[\w\W]+(=)[\w\W]+/
     }
     // 抽象语法树
     const astNode = []
@@ -28,7 +29,12 @@
      */
     tjs.prototype.parse = tjs.parse = function (str, arr = null) {
         str = str.trim()
-        const matches = str.match(options.stag)
+        const {
+            sTag,
+            expTag,
+            varTag
+        } = options
+        const matches = str.match(sTag)
         const root = arr || astNode
         if (matches) {
             const {
@@ -46,18 +52,23 @@
                     break
                 case '<%':
                     const statement = str.slice(index + 2, eTag)
-                    value = statement.match(options.statement)
+                    value = statement.match(expTag)
                     if (value) {
+                        // 如果是if|forEach表达式
                         const tag = value[1] === 'endif' ? createTextShape('}') : createTagShape(value[1], statement, root)
                         root.push(tag)
                         if (value[1] === 'endif') {
                             tjs.parse(str.slice(eTag + 2), parentNode.pop())
                         } else {
-                            if (value[1] === 'if') parentNode.push(root);
+                            if (value[1] === 'if') {
+                                parentNode.push(root)
+                            } else {
+                                console.log('123')
+                            };
                             tjs.parse(str.slice(eTag + 2), value[1] === 'if' ? tag.children : root)
                         }
                     } else {
-                        root.push(createTextShape(statement))
+                        root.push(varTag.test(statement) ? createVarShape(statement) : createTextShape(statement))
                         tjs.parse(str.slice(eTag + 2), root)
                     }
                     break
@@ -86,6 +97,7 @@
                 } = v
                 switch (type) {
                     case 1:
+                        // 字符串拼接
                         if (value === '})' || value === '}') {
                             domStr += value + ';'
                         } else {
@@ -93,10 +105,15 @@
                         }
                         break;
                     case 2:
+                        // 添加表达式
                         domStr += expression + (tag === 'if' ? '{' : '') + jump(children)
                         break;
                     case 3:
+                        // 添加变量
                         domStr += "_str += " + value + ";\n"
+                        break;
+                    case 4:
+                        domStr += value + ';'
                         break;
                 }
             })
@@ -108,7 +125,7 @@
     }
 
     /**
-     * 标签节点模型
+     * 标签节点模型(<% <ul><li> %>)
      * @param {*} value 值
      */
     function createTextShape(value) {
@@ -119,7 +136,7 @@
     }
 
     /**
-     * 表达式节点模型
+     * 表达式节点模型(<% if (statement) %>)
      * @param {if | forEach} tag 
      * @param {String} expression 
      */
@@ -133,12 +150,23 @@
     }
 
     /**
-     * 赋值节点模型
+     * 赋值节点模型(<%= name %>)
      * @param {*} value 值
      */
     function createLabelShape(value) {
         return {
             type: 3,
+            value: value.replace(/\n/g, " ").trim()
+        }
+    }
+
+    /**
+     * 声明变量节点模型(<% var test = 'demo' %>)
+     * @param {*} value 值
+     */
+    function createVarShape(value) {
+        return {
+            type: 4,
             value: value.replace(/\n/g, " ").trim()
         }
     }
