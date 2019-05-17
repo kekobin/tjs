@@ -18,7 +18,6 @@
     <% if (names.length)  %>
     <ul>
         <% names.forEach(function(name){ %>
-        <li><%:= name %></li>
         <li><%= name %></li>
         <% }) %>
     </ul>
@@ -29,10 +28,10 @@
 <script>
     console.time('渲染10000条数据用时')
     const el = document.querySelector('#template')
-    tjs(el.innerHTML)
-    document.write(tjs.render({
-        names: (new Array(1)).fill('<p>wjun94<p>')
-    }))
+    const obj = {
+        names: (new Array(10000)).fill('wjun94')
+    }
+    document.write(tjs(el.innerHTML, obj))
     console.timeEnd('渲染10000条数据用时')
 </script>
 

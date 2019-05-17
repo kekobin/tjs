@@ -7,13 +7,15 @@
         varTag: /(var)[\w\W]+(=)[\w\W]+/
     }
     // 抽象语法树
-    const astNode = []
+    let astNode = []
     // 保存状态,记录父节点
     const parentNode = []
 
     function tjs(el, options = null) {
         if (el) {
+            astNode = []
             const vnode = tjs.parse(el)
+            tjs.astNode = vnode;
             this.render = tjs.render = tjs.compile(vnode)
             if (options) {
                 return tjs.render(options)
